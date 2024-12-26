@@ -1,0 +1,93 @@
+# E-Health with Zero Knowledge Proofs
+# Import necessary libraries
+import pandas as pd
+import random
+
+# Simulate CMS Medicare Claims dataset
+def simulate_cms_data():
+    """
+    Simulates a CMS Medicare Claims dataset with sample data.
+    """
+    return pd.DataFrame({
+        'Patient_ID': [101, 102, 103, 104, 105],
+        'Diagnosis_Code': ['I10', 'E11.9', 'J45', 'I50', 'E66.9'],  # ICD-10 codes
+        'Procedure_Code': ['0D160Z9', '4A043', '3E01379', '8E0W4CZ', '5A1D60Z'],
+        'Service_Date': ['2024-01-22', '2024-02-09', '2024-03-12', '2024-05-18', '2024-06-24'],
+        'Provider_ID': [201, 202, 203, 204, 205],
+        'Total_Charge': [1200.50, 800.00, 2385.25, 1400.00, 5700.00]
+    })
+
+# Simulate MIMIC ICU dataset
+def simulate_mimic_data():
+    """
+    Simulates a MIMIC ICU dataset with sample patient data.
+    """
+    return pd.DataFrame({
+        'Patient_ID': [1, 2, 3, 4, 5],
+        'Admission_Type': ['Emergency', 'Elective', 'Emergency', 'Elective', 'Urgent'],
+        'Heart_Rate': [85, 72, 102, 90, 80],
+        'Blood_Pressure': ['120/80', '130/85', '110/70', '140/90', '70/60'],
+        'Oxygen_Level': [98, 97, 92, 96, 83],
+        'LOS_Days': [4, 2, 7, 5, 10]
+    })
+
+# Zero Knowledge Proof Implementation
+def zero_knowledge_proof():
+    """
+    Implements a Zero Knowledge Proof (ZKP) protocol to prove knowledge of a secret.
+    """
+    # Public parameters
+    p = 23  # A prime number
+    g = 5   # A generator in the group of integers modulo p
+
+    # Prover's secret
+    x = random.randint(1, p - 2)
+    y = pow(g, x, p)  # Public value (y = g^x mod p)
+    print(f"Prover's public value (y): {y}")
+
+    # Prover's commitment
+    r = random.randint(1, p - 2)
+    R = pow(g, r, p)  # Commitment (R = g^r mod p)
+    print(f"Prover's commitment (R): {R}")
+
+    # Verifier's challenge
+    challenge = random.randint(0, p - 1)
+    print(f"Verifier's challenge: {challenge}")
+
+    # Prover's response
+    z = (r + challenge * x) % (p - 1)
+    print(f"Prover's response (z): {z}")
+
+    # Verifier's computation
+    left = pow(g, z, p)
+    right = (R * pow(y, challenge, p)) % p
+    print(f"Verifier's computation: g^z mod p = {left}")
+    print(f"Verifier's comparison: (R * y^challenge) mod p = {right}")
+
+    if left == right:
+        print("ZKP Valid: Prover knows the secret!")
+    else:
+        print("ZKP Invalid: Prover failed to prove knowledge of the secret.")
+
+# Main function to orchestrate the simulation and ZKP
+def main():
+    """
+    Main function to run the E-Health data simulation and Zero Knowledge Proof demonstration.
+    """
+    # Simulate datasets
+    cms_data = simulate_cms_data()
+    mimic_data = simulate_mimic_data()
+
+    # Display datasets
+    print("CMS Medicare Claims Sample:")
+    print(cms_data, "\n")
+
+    print("MIMIC ICU Sample Data:")
+    print(mimic_data, "\n")
+
+    # Perform Zero Knowledge Proof
+    zero_knowledge_proof()
+
+# Execute the main function
+if __name__ == "__main__":
+    main()
