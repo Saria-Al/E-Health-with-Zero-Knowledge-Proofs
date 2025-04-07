@@ -1,0 +1,155 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyN/0ohqfDV04/o37UzHXLnI",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Saria-Al/E-Health-with-Zero-Knowledge-Proofs/blob/main/Secure%20patient%20data\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Importing necessary libraries\n",
+        "import pandas as pd\n",
+        "import random\n",
+        "\n",
+        "# 1. Simulating CMS Medicare Claims dataset\n",
+        "cms_data = pd.DataFrame({\n",
+        "    'Patient_ID': [101, 102, 103, 104, 105],\n",
+        "    'Diagnosis_Code': ['I10', 'E11.9', 'J45', 'I50', 'E66.9'],  # ICD-10 codes\n",
+        "    'Procedure_Code': ['0D160Z9', '4A043', '3E01379', '8E0W4CZ', '5A1D60Z'],\n",
+        "    'Service_Date': ['2024-01-22', '2024-02-09', '2024-03-12', '2024-05-18', '2024-06-24'],\n",
+        "    'Provider_ID': [201, 202, 203, 204, 205],\n",
+        "    'Total_Charge': [1200.50, 800.00, 2385.25, 1400.00, 5700.00]\n",
+        "})\n",
+        "\n",
+        "# 2. Simulating MIMIC ICU dataset\n",
+        "mimic_data = pd.DataFrame({\n",
+        "    'Patient_ID': [1, 2, 3, 4, 5],\n",
+        "    'Admission_Type': ['Emergency', 'Elective', 'Emergency', 'Elective', 'Urgent'],\n",
+        "    'Heart_Rate': [85, 72, 102, 90, 80],\n",
+        "    'Blood_Pressure': ['120/80', '130/85', '110/70', '140/90', '70/60'],\n",
+        "    'Oxygen_Level': [98, 97, 92, 96, 83],\n",
+        "    'LOS_Days': [4, 2, 7, 5, 10]  # Length of Stay in days\n",
+        "})\n",
+        "\n",
+        "# 3. Display the datasets using standard print\n",
+        "print(\"CMS Medicare Claims Sample:\")\n",
+        "print(cms_data, \"\\n\")\n",
+        "\n",
+        "print(\"MIMIC ICU Sample Data:\")\n",
+        "print(mimic_data, \"\\n\")\n",
+        "\n",
+        "# 4. ZKP Implementation: Prove knowledge of a secret value using modular arithmetic\n",
+        "\n",
+        "# Public parameters (shared between prover and verifier)\n",
+        "p = 23  # A prime number\n",
+        "g = 5   # A generator in the group of integers modulo p\n",
+        "\n",
+        "# Prover's secret\n",
+        "x = random.randint(1, p - 2)  # Prover's secret value\n",
+        "y = pow(g, x, p)  # Public value (y = g^x mod p)\n",
+        "print(f\"Prover's public value (y): {y}\")\n",
+        "\n",
+        "# Prover generates a random value (commitment step)\n",
+        "r = random.randint(1, p - 2)\n",
+        "R = pow(g, r, p)  # R = g^r mod p\n",
+        "print(f\"Prover's commitment (R): {R}\")\n",
+        "\n",
+        "# Verifier generates a challenge (random value)\n",
+        "challenge = random.randint(0, p - 1)  # Verifier's challenge\n",
+        "print(f\"Verifier's challenge: {challenge}\")\n",
+        "\n",
+        "# Prover computes the response (z)\n",
+        "z = (r + challenge * x) % (p - 1)  # Response to the challenge\n",
+        "print(f\"Prover's response (z): {z}\")\n",
+        "\n",
+        "# Verifier checks the proof\n",
+        "left = pow(g, z, p)  # g^z mod p\n",
+        "right = (R * pow(y, challenge, p)) % p  # R * y^challenge mod p\n",
+        "\n",
+        "print(f\"Verifier's computation: g^z mod p = {left}\")\n",
+        "print(f\"Verifier's comparison: (R * y^challenge) mod p = {right}\")\n",
+        "\n",
+        "# Validation: If both sides are equal, the proof is valid\n",
+        "if left == right:\n",
+        "    print(\"ZKP Valid: Prover knows the secret!\")\n",
+        "else:\n",
+        "    print(\"ZKP Invalid: Prover failed to prove knowledge of the secret.\")\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "mAX5TFHZ8M9r",
+        "outputId": "8e25ec38-69ac-4db2-e2fe-fc0a6ff4a3ec"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "CMS Medicare Claims Sample:\n",
+            "   Patient_ID Diagnosis_Code Procedure_Code Service_Date  Provider_ID  \\\n",
+            "0         101            I10        0D160Z9   2024-01-22          201   \n",
+            "1         102          E11.9          4A043   2024-02-09          202   \n",
+            "2         103            J45        3E01379   2024-03-12          203   \n",
+            "3         104            I50        8E0W4CZ   2024-05-18          204   \n",
+            "4         105          E66.9        5A1D60Z   2024-06-24          205   \n",
+            "\n",
+            "   Total_Charge  \n",
+            "0       1200.50  \n",
+            "1        800.00  \n",
+            "2       2385.25  \n",
+            "3       1400.00  \n",
+            "4       5700.00   \n",
+            "\n",
+            "MIMIC ICU Sample Data:\n",
+            "   Patient_ID Admission_Type  Heart_Rate Blood_Pressure  Oxygen_Level  \\\n",
+            "0           1      Emergency          85         120/80            98   \n",
+            "1           2       Elective          72         130/85            97   \n",
+            "2           3      Emergency         102         110/70            92   \n",
+            "3           4       Elective          90         140/90            96   \n",
+            "4           5         Urgent          80          70/60            83   \n",
+            "\n",
+            "   LOS_Days  \n",
+            "0         4  \n",
+            "1         2  \n",
+            "2         7  \n",
+            "3         5  \n",
+            "4        10   \n",
+            "\n",
+            "Prover's public value (y): 18\n",
+            "Prover's commitment (R): 3\n",
+            "Verifier's challenge: 22\n",
+            "Prover's response (z): 16\n",
+            "Verifier's computation: g^z mod p = 3\n",
+            "Verifier's comparison: (R * y^challenge) mod p = 3\n",
+            "ZKP Valid: Prover knows the secret!\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
